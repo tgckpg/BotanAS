@@ -1,0 +1,106 @@
+﻿Concept 1 (Clock_electron):
+
+  Hour　　　Minute　 　Second
+OOO　OOO　　OOO　OOO　　O O　OOO
+O O　O O　　O O　  O　　O O　  O
+OOO　OOO　　O O　OOO　　OOO　OOO
+  O　O O　　O O　  O　　  O　O  
+OOO　OOO　　OOO　OOO　　  O　OOO
+
+O(active)---Tween---> (inactive)
+or
+ (inactive)---Tween--->O(active)
+//" " is invisible.
+
+var zero:Array = new Array(0,1,2,3,5,6,8,9,11,12,13,14);
+//111 101 101 101 111
+var one:Array = new Array(1,3,4,7,10,12,13,14);
+//010 110 010 010 111
+var two:Array = new Array(0,1,2,5,6,7,8,9,12,13,14);
+//111 001 111 100 111
+var three:Array = new Array(0,1,2,5,6,7,8,11,12,13,14);
+//111 001 111 001 111
+var four:Array = new Array(0,2,3,5,6,7,8,11,14);
+//101 101 111 001 001
+var five:Array = new Array(0,1,2,3,6,7,8,11,12,13,14);
+//111 100 111 001 111
+var six:Array = new Array(0,1,2,3,6,7,8,9,11,12,13,14);
+//111 100 111 101 111
+var seven:Array = new Array(0,1,2,3,5,8,11,14);
+//111 101 001 001 001
+var eight:Array = new Array(0,1,2,3,5,6,7,8,9,11,12,13,14);
+//111 101 111 101 111
+var nine:Array = new Array(0,1,2,3,5,6,7,8,11,12,13,14);
+//111 101 111 001 111
+　　^--Note that block14 is always active in all digits.
+
+
+Concept 2 (Image):
+align(9):
+100 010 001 000 000 000 000 000 000
+000 000 000 100 010 001 000 000 000
+000 000 000 000 000 000 100 010 001
+
+
+
+
+Animator:
+
+
+var img:Image = new Image(new URLRequest($localAddr + 'samples/sample.png'), 700, 280)
+, $mask:Sprite = new Sprite
+, $w:int = 69, $h:int = 69
+, $row:int = 10
+, $col:int = 10
+, $i:int, $j:int
+, $si:int, $sj:int
+, $start:int = 0, $end:int = 15
+, $s:int = 0, $current:int
+;
+$m.x = $m.y = 200;
+$mask.graphics.beginFill(0);
+$mask.graphics.drawRect(0, 0, $w, $h);
+$mask.graphics.endFill();
+img.mask = $mask;
+$m.addChild($mask);
+$m.addChild(img);
+img.x = -($w + 1)*($i = $si = $start % $col);
+$end -= 1;
+img.y = -($h + 1)*($j = $sj = Math.floor($start/$col));
+$current = $start - 1;
+img.addEventListener(Event.COMPLETE, function($e:Event):void {
+	addEventListener(Event.ENTER_FRAME, function ($e:Event):void {
+		if($i < $col) {
+			img.x = -($w + 1)*($i ++);
+		} else {
+			$i = $si;
+			img.x = -($w + 1)*($i ++);
+			if($j ++ < $row) {
+				img.y = -($h + 1)*($j);
+			} else {
+				$j = $sj;
+			}
+		}
+		if($current ++ > $end) {
+			$i = $si;
+			img.x = -($w + 1)*($i ++);
+			img.y = -($h + 1)*($j = $sj);
+			$current = $start;
+		}
+	});
+});
+
+
+gSender:
+
+public function sendXML(link:String, xml:XML, cd:int, handler:Function):void {
+			var urldr:URLLoader = new URLLoader();
+			var urlst:URLRequest = new URLRequest();
+			var pattern:RegExp = /[\s\r\n]*/g;
+
+			urlst.data = 'code=' + String(cd) + '&data=' + xml.toString().replace(pattern,'');
+			urlst.method = "POST";
+			urlst.url = link;
+			urldr.addEventListener(Event.COMPLETE, handler);
+			urldr.load(urlst);
+		}

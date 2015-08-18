@@ -1,0 +1,65 @@
+easeType :
+  a.In
+  b.Out
+  c.InOut
+    0 = Back
+    1
+    2
+    3 = Bounce
+    4
+    5
+    6 = Circular
+    7
+    8
+    9 = Cubic
+    10
+    11
+    12 = Elastic
+    13
+    14
+    15 = Exponential
+    16
+    17
+    18 = Linear, None
+    19 = Regular , Quardratic
+    20
+    21
+    22 = Quartic
+    23
+    24
+    25 = Strong. Quintic
+    26
+    27
+    28 = Sine
+    29
+    30
+
+Prototype:
+  obL(object):
+    instname:Array
+    0 = Function
+    1 = Properties(Object)
+        propname:Array
+        0 = cF
+        1 = fms
+        2 = oV
+        3 = nV
+        4 = cV
+        5 = eT
+        6 = dT
+        7 = iT
+        8 = beEase
+        9 = Pts
+        10 = mpr
+        11 = bools
+        12 = clV
+        13 = b2ols
+        14 = c2V
+        15 = qlt
+        16 = inr
+        17 = nkt
+        18 = tpe
+        19 = hob
+        20 = iI
+    2 = dT
+    3 = iT

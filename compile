@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# this command will execute on script exit
+trap "{ [ -e Build.as ] && rm Build.as; }" EXIT
+
+
+# trap "{ [ -L fl ] && rm fl; [ -L com ]  && rm com; [ -e Build.as ] && rm Build.as; }" EXIT
+
+# # Make links
+# ln -s ../../../res/fl fl
+# ln -s ../../../res/com com
+
+COMPILER=mxmlc
+
+# Compiler checking
+command -v $COMPILER >/dev/null 2>&1 || { echo >&2 "I require foo but it's not installed.  Aborting."; exit 1; }
+
+# Root checking
+if [ $(id -u) -eq 0 ]; then
+	echo This function cannot be run as root.
+	exit 1
+fi
+
+# Get basename
+FILE=$(basename $1 .as)
+
+# This control if use build counter
+isBUILD=0
+
+# Proscenium implementation options
+opts=''
+
+# Check if include libraries
+if [ "$2" = "--uselibs" ]; then
+	opts="-include-libraries /opt/flex4SDK/runtimeLibs/*.swc"
+fi
+
+# If build counter is available
+if [ -e builds/$FILE ]; then
+	
+	# Enable build function
+	isBUILD=1
+	BuildInfo="builds/$FILE"
+	
+	# Generate Build class
+	cat << 'EOF' > Build.as
+package {
+
+	public class Build {
+
+		private var echo:Function = function (...msg:*):void { };
+		protected var buildNumber:int = 
+EOF
+
+	# Increment build count
+	BUILD=$(cat $BuildInfo|head -n 1)
+	let "BUILD++"
+	echo $BUILD>>Build.as
+	cat << 'EOF' >> Build.as
+		, __mode:String
+		;
+
+		public function Build(echo:Function = null, mode:Boolean = true):void {
+			this.__mode = mode ? "Production":"Debug";
+			if(echo as Function) {
+				this.echo = echo;
+				echo(
+EOF
+
+	# append rest of the codes
+	echo \"$FILE \">> Build.as
+	cat << 'EOF' >> Build.as
+				+ __mode + " build " + buildNumber);
+			}
+		}
+
+		public function set build(a:int):void {
+			echo("Error: buildNumber is a read-only variable.");
+		}
+		public function get build():int {
+			return buildNumber;
+		}
+
+		public function set mode(a:String):void {
+			echo("Error: buildNumber is a read-only variable.");
+		}
+		public function get mode():String {
+			return __mode;
+		}
+
+	}
+}
+EOF
+else
+	# Setup build counter for file
+	echo 0>builds/$FILE
+fi
+
+# Compile
+$COMPILER "$FILE.as" -static-rsls --show-actionscript-warnings=true --strict=true --debug=true -use-network=true -compatibility-version=3 $opts
+
+# Move compiled file to swf root
+[ -s "$FILE.swf" ] && mv "$FILE.swf" "./swf/$FILE.swf"
+
+# If build success
+if [ $? -eq 0 ] && [ $isBUILD -eq 1  ] ; then
+	echo $BUILD > $BuildInfo
+	echo PASSED >> $BuildInfo
+	echo -e Build "\e[01;32m$BUILD\e[00m" $('date')
+else
+	sed '2s/.*/FAILED/' -i $BuildInfo
+	echo $('date')
+	echo -e ---"\e[01;31mError occured\e[00m"---
+fi
